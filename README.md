@@ -6,12 +6,13 @@ python -m venv .venv
 .venv\Scripts\activate
 pip install -r requirements.txt
 
-## Team and contributions
+## Team and  MS 1 contributions
 
 | Member | Part |
 |---|---|
-| Natalie David | Classification |
-| Doaa Shaker | Classification |
-| Laila Tarek | Preprocessing |
-| Nour Mostafa | Preprocessing |
+| Natalie David | Classification Model |
+| Doaa Shaker | Regression Model |
+| Laila Tarek | Regression Preprocessing |
+| Nour Mostafa | Regression Preprocessing |
 | Heba Hassan | Clustering |
+| Malak Moustafa | Clustering Preprocessing |
