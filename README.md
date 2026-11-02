@@ -7,5 +7,9 @@ python -m venv .venv
 pip install -r requirements.txt
 
 ## Team and contributions
-| Member | GitHub account | Part |
---to be added
+| Member | Part |
+|Natalie David| Classification |
+|Doaa Shaker| Classification |
+|Laila Tarek | Preprocessing |
+|Nour Mostafa | Preprocessing |
+|Heba Hassan | Clustering |
