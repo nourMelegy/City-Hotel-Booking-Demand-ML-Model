@@ -156,7 +156,7 @@ print(dups.head(20).to_string())
 # Cell 2: Separate features and target, then split
 from sklearn.model_selection import train_test_split
 
-X = df.drop(columns=['IsCanceled'])
+X = df.drop(columns=['IsCanceled', 'ReservationStatus', 'ReservationStatusDate'])
 y = df['IsCanceled']
 
 X_train, X_test, y_train, y_test = train_test_split(
@@ -1804,8 +1804,8 @@ print(result_df.to_string(index=False))
 X_train = X_train.drop(columns="ADR")
 X_test = X_test.drop(columns="ADR")
 
-X_train.drop(columns=["is_free_stay"])
-X_test.drop(columns=["is_free_stay"])
+X_train = X_train.drop(columns="is_free_stay")
+X_test = X_test.drop(columns="is_free_stay")
 
 """RequiredCarParkingSpaces
 
@@ -2140,3 +2140,144 @@ print("Files saved. Starting downloads...")
 # 3. Download the files to your local machine
 files.download('H2_classification_train.csv')
 files.download('H2_classification_test.csv')
+
+from pathlib import Path
+import pandas as pd
+
+output_path = Path("cleaned_hotel_bookings.csv")
+
+# Save the full dataset (no train/test split) without row index numbers
+df.to_csv(output_path, index=False)
+print(f"Saved {len(df)} rows and {df.shape[1]} columns to {output_path.resolve()}")
+
+# Optional: If running in Google Colab and you want an immediate browser download
+try:
+  from google.colab import files  # type: ignore
+
+  files.download(str(output_path))
+except ImportError:
+  pass
+
+# =====================================================================
+# Full-dataset preprocessing (NO train/test split) -> H2_preprocessed.csv
+# Paste at the end of classificationppwithoutduplicates.py.
+# Uses its own variable names (full, y_full) so it doesn't overwrite
+# df / X_train / X_test from the cells above.
+# =====================================================================
+import numpy as np
+import pandas as pd
+from sklearn.preprocessing import OneHotEncoder, TargetEncoder
+
+H2_PATH = '/content/H2.csv'
+OUT_PATH = 'H2_preprocessed_nosplit.csv'
+
+full = pd.read_csv(H2_PATH)
+print('raw shape:', full.shape)
+
+# 1) Leakage columns (the first cell drops them, but a later cell re-reads the raw CSV)
+full = full.drop(columns=['ReservationStatus', 'ReservationStatusDate'], errors='ignore')
+
+# 2) Exact duplicates (target included, so conflicting labels are not merged)
+full = full.drop_duplicates(keep='first').copy()
+print('after dedup:', full.shape)
+
+# 3) Month -> 12 dummy columns, then drop raw date columns
+month_mapping = {
+    'January': 1, 'February': 2, 'March': 3, 'April': 4, 'May': 5, 'June': 6,
+    'July': 7, 'August': 8, 'September': 9, 'October': 10, 'November': 11, 'December': 12,
+}
+full['month'] = pd.Categorical(full['ArrivalDateMonth'].map(month_mapping), categories=range(1, 13))
+full = pd.get_dummies(full, columns=['month'], prefix='month', dtype=int)
+full = full.drop(columns=['ArrivalDateYear', 'ArrivalDateMonth',
+                          'ArrivalDateDayOfMonth', 'ArrivalDateWeekNumber'])
+
+# 4) Nights features
+full['TotalNights'] = full['StaysInWeekendNights'] + full['StaysInWeekNights']
+full['WeekendOrNo'] = (full['StaysInWeekendNights'] > 0).astype(int)
+full['IsZeroNights'] = (full['TotalNights'] == 0).astype(int)
+full = full.drop(columns=['StaysInWeekendNights', 'StaysInWeekNights'])
+
+# 5) Guests: drop invalid rows, keep total_guests
+full['Children'] = full['Children'].fillna(0)
+full['total_guests'] = full['Adults'] + full['Children'] + full['Babies']
+full = full[(full['Adults'] > 0) & (full['total_guests'] > 0)].copy()
+full = full.drop(columns=['Adults', 'Children', 'Babies'])
+
+# 6) Meal: one-hot
+meal_enc = OneHotEncoder(handle_unknown='ignore', sparse_output=False)
+meal_df = pd.DataFrame(meal_enc.fit_transform(full[['Meal']]),
+                       columns=meal_enc.get_feature_names_out(['Meal']), index=full.index)
+full = pd.concat([full.drop(columns='Meal'), meal_df], axis=1)
+
+# 7) Country: CN -> CHN, drop missing, one-hot with rare countries grouped (min_frequency=500)
+full['Country'] = full['Country'].replace({'CN': 'CHN'})
+full = full[full['Country'].notna()].copy()
+country_enc = OneHotEncoder(min_frequency=500, handle_unknown='infrequent_if_exist', sparse_output=False)
+country_df = pd.DataFrame(country_enc.fit_transform(full[['Country']]),
+                          columns=country_enc.get_feature_names_out(['Country']), index=full.index)
+full = pd.concat([full.drop(columns='Country'), country_df], axis=1)
+
+# 8) MarketSegment: drop 'Undefined', one-hot
+full['MarketSegment'] = full['MarketSegment'].str.strip()
+full = full[full['MarketSegment'] != 'Undefined'].copy()
+seg_enc = OneHotEncoder(handle_unknown='ignore', sparse_output=False)
+seg_df = pd.DataFrame(seg_enc.fit_transform(full[['MarketSegment']]),
+                      columns=seg_enc.get_feature_names_out(['MarketSegment']), index=full.index)
+full = pd.concat([full.drop(columns='MarketSegment'), seg_df], axis=1)
+
+# 9) Simple drops
+full = full.drop(columns=['DistributionChannel', 'IsRepeatedGuest', 'PreviousCancellations',
+                          'ReservedRoomType', 'AssignedRoomType', 'BookingChanges',
+                          'DaysInWaitingList', 'RequiredCarParkingSpaces'])
+
+# 10) PreviousBookingsNotCanceled -> binary flag
+full['has_prev_not_canceled'] = (pd.to_numeric(full['PreviousBookingsNotCanceled'], errors='coerce')
+                                 .fillna(0) > 0).astype(int)
+full = full.drop(columns='PreviousBookingsNotCanceled')
+
+# 11) DepositType: one-hot
+full['DepositType'] = full['DepositType'].astype(str).str.strip()
+dep_enc = OneHotEncoder(handle_unknown='ignore', sparse_output=False)
+dep_df = pd.DataFrame(dep_enc.fit_transform(full[['DepositType']]),
+                      columns=dep_enc.get_feature_names_out(['DepositType']), index=full.index)
+full = pd.concat([full.drop(columns='DepositType'), dep_df], axis=1)
+
+# 12) Agent: cross-fitted target encoding (needs the target, so it's done on the full data)
+full['Agent'] = (full['Agent'].astype(str).str.strip()
+                 .replace({'NULL': 'No_Agent', 'nan': 'No_Agent'}))
+agent_te = TargetEncoder(target_type='binary', smooth='auto', cv=5, random_state=42)
+full['Agent_te'] = agent_te.fit_transform(full[['Agent']], full['IsCanceled']).ravel()
+full = full.drop(columns='Agent')
+
+# 13) Company -> has_company flag
+company_clean = (full['Company'].fillna('No_Company').astype(str).str.strip()
+                 .replace({'NULL': 'No_Company', 'nan': 'No_Company'}))
+full['has_company'] = (company_clean != 'No_Company').astype(int)
+full = full.drop(columns='Company')
+
+# 14) CustomerType -> 3 flags (Transient is the baseline)
+cust = full['CustomerType'].astype(str).str.strip()
+full['CustomerType_Transient_Party'] = (cust == 'Transient-Party').astype(int)
+full['CustomerType_Contract'] = (cust == 'Contract').astype(int)
+full['CustomerType_Group'] = (cust == 'Group').astype(int)
+full = full.drop(columns='CustomerType')
+
+# 15) ADR and the is_free_stay flag are both dropped
+full = full.drop(columns='ADR')
+
+# LeadTime and TotalOfSpecialRequests are kept as-is.
+
+# 16) Sanity checks, save, download
+print('final shape:', full.shape)
+print('remaining non-numeric columns:', full.select_dtypes(exclude='number').columns.tolist())
+print('columns with nulls:', full.columns[full.isna().any()].tolist())
+print('cancel rate:', round(full['IsCanceled'].mean(), 3))
+
+full.to_csv(OUT_PATH, index=False)
+print('saved', OUT_PATH)
+
+try:
+    from google.colab import files
+    files.download(OUT_PATH)
+except ImportError:
+    pass
