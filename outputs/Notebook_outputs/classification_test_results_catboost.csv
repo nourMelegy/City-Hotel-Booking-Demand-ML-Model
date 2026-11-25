@@ -1,0 +1,4 @@
+model,version,threshold,accuracy,precision,recall,specificity,f1,hm_2_1,roc_auc,pr_auc,TN,FP,FN,TP
+CatBoost,tuned @0.50,0.5,0.8245,0.7713,0.6536,0.9068,0.7076,0.7207,0.8946,0.817,7556,777,1389,2621
+CatBoost,tuned @best-F1,0.32,0.8049,0.6618,0.817,0.7991,0.7312,0.8109,0.8946,0.817,6659,1674,734,3276
+CatBoost,tuned @best-HM,0.25,0.7746,0.6061,0.8748,0.7264,0.7161,0.819,0.8946,0.817,6053,2280,502,3508

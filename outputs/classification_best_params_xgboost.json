@@ -1,0 +1,31 @@
+{
+  "model": "xgboost",
+  "search_space": {
+    "n_estimators": [
+      200,
+      400,
+      600
+    ],
+    "max_depth": [
+      3,
+      4,
+      6,
+      8
+    ],
+    "learning_rate": [
+      0.03,
+      0.05,
+      0.1,
+      0.2
+    ]
+  },
+  "n_iter": 20,
+  "metric": "pr_auc (average_precision), 5-fold CV on train",
+  "best_params": {
+    "n_estimators": 200,
+    "max_depth": 8,
+    "learning_rate": 0.1
+  },
+  "best_cv_pr_auc": 0.7488477828713341,
+  "tune_time_sec": 137.73532891273499
+}
