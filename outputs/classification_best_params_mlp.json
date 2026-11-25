@@ -1,0 +1,44 @@
+{
+  "model": "mlp",
+  "search_space": {
+    "hidden_layer_sizes": [
+      [
+        50
+      ],
+      [
+        100
+      ],
+      [
+        100,
+        50
+      ],
+      [
+        64,
+        32
+      ]
+    ],
+    "alpha": [
+      0.0001,
+      0.001,
+      0.01,
+      0.1
+    ],
+    "learning_rate_init": [
+      0.001,
+      0.003,
+      0.01
+    ]
+  },
+  "n_iter": 10,
+  "metric": "pr_auc (average_precision), 5-fold CV on train",
+  "best_params": {
+    "learning_rate_init": 0.003,
+    "hidden_layer_sizes": [
+      100,
+      50
+    ],
+    "alpha": 0.1
+  },
+  "best_cv_pr_auc": 0.723616504744695,
+  "tune_time_sec": 116.77790760993958
+}

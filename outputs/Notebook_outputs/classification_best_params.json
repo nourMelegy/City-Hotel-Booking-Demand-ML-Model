@@ -1,0 +1,106 @@
+{
+  "RandomForest": {
+    "search_space": {
+      "model__n_estimators": [
+        100,
+        200,
+        300,
+        500
+      ],
+      "model__max_depth": [
+        10,
+        20,
+        30,
+        null
+      ],
+      "model__min_samples_leaf": [
+        1,
+        2,
+        5,
+        10
+      ]
+    },
+    "n_iter": 20,
+    "metric": "pr_auc (average_precision), 5-fold CV on train",
+    "best_params": {
+      "model__n_estimators": 200,
+      "model__min_samples_leaf": 1,
+      "model__max_depth": 20
+    },
+    "best_cv_pr_auc": 0.7498880329371359,
+    "tune_time_sec": 167.44421553611755
+  },
+  "XGBoost": {
+    "search_space": {
+      "model__n_estimators": [
+        200,
+        400,
+        600
+      ],
+      "model__max_depth": [
+        3,
+        4,
+        6,
+        8
+      ],
+      "model__learning_rate": [
+        0.03,
+        0.05,
+        0.1,
+        0.2
+      ]
+    },
+    "n_iter": 20,
+    "metric": "pr_auc (average_precision), 5-fold CV on train",
+    "best_params": {
+      "model__n_estimators": 200,
+      "model__max_depth": 8,
+      "model__learning_rate": 0.1
+    },
+    "best_cv_pr_auc": 0.7488477828713341,
+    "tune_time_sec": 78.26983904838562
+  },
+  "MLP": {
+    "search_space": {
+      "model__hidden_layer_sizes": [
+        [
+          50
+        ],
+        [
+          100
+        ],
+        [
+          100,
+          50
+        ],
+        [
+          64,
+          32
+        ]
+      ],
+      "model__alpha": [
+        0.0001,
+        0.001,
+        0.01,
+        0.1
+      ],
+      "model__learning_rate_init": [
+        0.001,
+        0.003,
+        0.01
+      ]
+    },
+    "n_iter": 10,
+    "metric": "pr_auc (average_precision), 5-fold CV on train",
+    "best_params": {
+      "model__learning_rate_init": 0.003,
+      "model__hidden_layer_sizes": [
+        100,
+        50
+      ],
+      "model__alpha": 0.1
+    },
+    "best_cv_pr_auc": 0.723616504744695,
+    "tune_time_sec": 51.14899492263794
+  }
+}
