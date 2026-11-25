@@ -1,0 +1,18 @@
+{
+    "lead_time": 8,
+    "special_requests": 2,
+    "arrival_month": 3,
+    "weekend_nights": 0,
+    "week_nights": 4,
+    "adults": 1,
+    "children": 0,
+    "babies": 0,
+    "meal": "BB",
+    "country": "AUT",
+    "market_segment": "Online TA",
+    "deposit_type": "No Deposit",
+    "agent": "No_Agent",
+    "has_company": 0,
+    "customer_type": "Transient",
+    "previous_bookings_not_canceled": 0
+}

@@ -1,0 +1,18 @@
+{
+    "lead_time": 90,
+    "arrival_month": 12,
+    "weekend_nights": 2,
+    "week_nights": 3,
+    "adults": 2,
+    "children": 1,
+    "babies": 0,
+    "meal": "HB",
+    "country": "GBR",
+    "market_segment": "Online TA",
+    "deposit_type": "No Deposit",
+    "agent": "9",
+    "has_company": 0,
+    "customer_type": "Transient",
+    "special_requests": 1,
+    "previous_bookings_not_canceled": 2
+}
